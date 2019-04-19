@@ -1,0 +1,14 @@
+v2.01 (2019-04-19)
+> Source code renamed: fnaming --> fnamer
+> Source code reorganized.
+> More than one directory of interest (whose filenames and subdirs will
+  be renamed) can be designated.
+> User-defined old-new strings can be specified via the cmd-line opt.
+> The predefined rules (routines) can be turned off via the cmd-line opt.
+
+v2.00 (2018-08-16)
+> Source code renamed: fnc --> fnaming
+> Source code reorganized.
+
+v1.00 (2017-05-15)
+> Source code created: fnc

@@ -1,0 +1,80 @@
+NAME
+    fnamer - Rename multiple filenames according to your conventions
+
+SYNOPSIS
+        perl fnamer.pl [-dirs=dname ...] [-pairs=old-new ...] [-space_to=-|_]
+                       [-turn_off=routine ...] [-nofm] [-nopause]
+
+DESCRIPTION
+        fnamer helps renaming multiple filenames according to user specifications.
+        The user can:
+        - turn off the predefined rules
+        - specify old-new string pairs on the fly
+        - hardcode new rules**
+        ** Define a new routine and register its information to
+           the run_fname_modifiers routine.
+
+OPTIONS
+        Multiple values are separated by the comma (,).
+
+        -dirs=dname ... (default: current working directory)
+            Directories whose files and subdirectories will be renamed.
+            If 'all' is input and a subdirectory named 'all' does not exist in
+            the current working directory, all the subdirectories will be examined.
+
+        -pairs=old-new ...
+            Pairs of the old and new strings of filenames. Use this option
+            for specifying your conventions on the fly.
+            For instance, the options -pairs=rpt-deck,figures-figs,Phase-phase
+            will rename rpt to deck, figures to figs, and Phase to phase.
+            If given, these pairs will take precedence over the predefined rules.
+
+        -space_to=-|_ (short form: -space, default: _)
+            Whitespace replacement.
+
+        -turn_off=routine ... (short form: -off)
+            You can turn off the predefined routines listed below.
+                custom_strings
+                replace_whitespace
+                remove_symbols
+                yy_to_yyyy
+                uncap_ext
+                uncap_allcapped_substr
+                unix_case
+
+        -nofm
+            Do not show the front matter at the beginning of the program.
+
+        -nopause
+            Do not pause the shell at the end of the program.
+
+EXAMPLES
+        perl fnamer.pl -dirs=.,../wow -pairs=fig-figs -nopause
+        perl fnamer.pl -turn_off=yy_to_yyyy,custom_strings
+        perl fnamer.pl -dirs=all -nopause
+
+REQUIREMENTS
+    Perl 5
+
+CAVEATS
+        - USE WITH CARE: renaming via this program is irreversible.
+        - DO NOT work on filenames containing non-English letters; otherwise
+          the filenames will be ruined FOREVER.
+        - Multiple runs of this program with the same on-the-fly string pairs can
+          lead to duplicate renaming. For instance, if you have a file called
+          'fig.eps' and run the program with the option -pairs=fig-figs
+          more than twice, the filename will eventually become 'figss.eps.'.
+
+SEE ALSO
+    fnamer on GitHub <https://github.com/jangcom/fnamer>
+
+AUTHOR
+    Jaewoong Jang <jan9@korea.ac.kr>
+
+COPYRIGHT
+    Copyright (c) 2017-2019 Jaewoong Jang
+
+LICENSE
+    This software is available under the MIT license; the license
+    information is found in 'LICENSE'.
+
