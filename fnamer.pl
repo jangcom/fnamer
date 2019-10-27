@@ -11,20 +11,20 @@ use constant ARRAY => ref [];
 use constant HASH  => ref {};
 
 
-our $VERSION = '2.01';
-our $LAST    = '2019-04-19';
+our $VERSION = '2.02';
+our $LAST    = '2019-10-27';
 our $FIRST   = '2017-05-15';
 
 
 #----------------------------------My::Toolset----------------------------------
 sub show_front_matter {
     # """Display the front matter."""
-    
+
     my $prog_info_href = shift;
     my $sub_name = join('::', (caller(0))[0, 3]);
     croak "The 1st arg of [$sub_name] must be a hash ref!"
         unless ref $prog_info_href eq HASH;
-    
+
     # Subroutine optional arguments
     my(
         $is_prog,
@@ -48,7 +48,7 @@ sub show_front_matter {
         $lead_symb              = $_ if /^[^a-zA-Z0-9]$/;
     }
     my $newline = $is_no_newline ? "" : "\n";
-    
+
     #
     # Fill in the front matter array.
     #
@@ -59,12 +59,12 @@ sub show_front_matter {
         '+' => $lead_symb.('+' x $border_len).$newline,
         '*' => $lead_symb.('*' x $border_len).$newline,
     );
-    
+
     # Top rule
     if ($is_prog or $is_auth) {
         $fm[$k++] = $borders{'+'};
     }
-    
+
     # Program info, except the usage
     if ($is_prog) {
         $fm[$k++] = sprintf(
@@ -75,14 +75,21 @@ sub show_front_matter {
             $newline,
         );
         $fm[$k++] = sprintf(
-            "%sVersion %s (%s)%s",
+            "%s%s v%s (%s)%s",
             ($lead_symb ? $lead_symb.' ' : $lead_symb),
+            $prog_info_href->{titl},
             $prog_info_href->{vers},
             $prog_info_href->{date_last},
             $newline,
         );
+        $fm[$k++] = sprintf(
+            "%sPerl %s%s",
+            ($lead_symb ? $lead_symb.' ' : $lead_symb),
+            $^V,
+            $newline,
+        );
     }
-    
+
     # Timestamp
     if ($is_timestamp) {
         my %datetimes = construct_timestamps('-');
@@ -93,7 +100,7 @@ sub show_front_matter {
             $newline,
         );
     }
-    
+
     # Author info
     if ($is_auth) {
         $fm[$k++] = $lead_symb.$newline if $is_prog;
@@ -102,25 +109,30 @@ sub show_front_matter {
             ($lead_symb ? $lead_symb.' ' : $lead_symb),
             $prog_info_href->{auth}{$_},
             $newline,
-        ) for qw(name posi affi mail);
+        ) for (
+            'name',
+#            'posi',
+#            'affi',
+            'mail',
+        );
     }
-    
+
     # Bottom rule
     if ($is_prog or $is_auth) {
         $fm[$k++] = $borders{'+'};
     }
-    
+
     # Program usage: Leading symbols are not used.
     if ($is_usage) {
         $fm[$k++] = $newline if $is_prog or $is_auth;
         $fm[$k++] = $prog_info_href->{usage};
     }
-    
+
     # Feed a blank line at the end of the front matter.
     if (not $is_no_trailing_blkline) {
         $fm[$k++] = $newline;
     }
-    
+
     #
     # Print the front matter.
     #
@@ -136,7 +148,7 @@ sub show_front_matter {
 
 sub validate_argv {
     # """Validate @ARGV against %cmd_opts."""
-    
+
     my $argv_aref     = shift;
     my $cmd_opts_href = shift;
     my $sub_name = join('::', (caller(0))[0, 3]);
@@ -144,12 +156,12 @@ sub validate_argv {
         unless ref $argv_aref eq ARRAY;
     croak "The 2nd arg of [$sub_name] must be a hash ref!"
         unless ref $cmd_opts_href eq HASH;
-    
+
     # For yn prompts
     my $the_prog = (caller(0))[1];
     my $yn;
     my $yn_msg = "    | Want to see the usage of $the_prog? [y/n]> ";
-    
+
     #
     # Terminate the program if the number of required arguments passed
     # is not sufficient.
@@ -172,11 +184,11 @@ sub validate_argv {
             }
         }
     }
-    
+
     #
     # Count the number of correctly passed command-line options.
     #
-    
+
     # Non-fnames
     my $num_corr_cmd_opts = 0;
     foreach my $arg (@$argv_aref) {
@@ -187,12 +199,12 @@ sub validate_argv {
             }
         }
     }
-    
+
     # Fname-likes
     my $num_corr_fnames = 0;
     $num_corr_fnames = grep $_ !~ /^-/, @$argv_aref;
     $num_corr_cmd_opts += $num_corr_fnames;
-    
+
     # Warn if "no" correct command-line options have been passed.
     if (not $num_corr_cmd_opts) {
         print "\n    | None of the command-line options was correct.\n";
@@ -203,16 +215,16 @@ sub validate_argv {
             print $yn_msg;
         }
     }
-    
+
     return;
 }
 
 
 sub show_elapsed_real_time {
     # """Show the elapsed real time."""
-    
+
     my @opts = @_ if @_;
-    
+
     # Parse optional arguments.
     my $is_return_copy = 0;
     my @del; # Garbage can
@@ -226,13 +238,13 @@ sub show_elapsed_real_time {
     }
     my %dels = map { $_ => 1 } @del;
     @opts = grep !$dels{$_}, @opts;
-    
+
     # Optional strings printing
     print for @opts;
-    
+
     # Elapsed real time printing
     my $elapsed_real_time = sprintf("Elapsed real time: [%s s]", time - $^T);
-    
+
     # Return values
     if ($is_return_copy) {
         return $elapsed_real_time;
@@ -246,22 +258,22 @@ sub show_elapsed_real_time {
 
 sub pause_shell {
     # """Pause the shell."""
-    
+
     my $notif = $_[0] ? $_[0] : "Press enter to exit...";
-    
+
     print $notif;
     while (<STDIN>) { last; }
-    
+
     return;
 }
 
 
 sub construct_timestamps {
     # """Construct timestamps."""
-    
+
     # Optional setting for the date component separator
     my $date_sep  = '';
-    
+
     # Terminate the program if the argument passed
     # is not allowed to be a delimiter.
     my @delims = ('-', '_');
@@ -271,13 +283,13 @@ sub construct_timestamps {
         croak "The date delimiter must be one of: [".join(', ', @delims)."]"
             unless $is_correct_delim;
     }
-    
+
     # Construct and return a datetime hash.
     my $dt  = DateTime->now(time_zone => 'local');
     my $ymd = $dt->ymd($date_sep);
     my $hms = $dt->hms($date_sep ? ':' : '');
     (my $hm = $hms) =~ s/[0-9]{2}$//;
-    
+
     my %datetimes = (
         none   => '', # Used for timestamp suppressing
         ymd    => $ymd,
@@ -286,23 +298,23 @@ sub construct_timestamps {
         ymdhms => sprintf("%s%s%s", $ymd, ($date_sep ? ' ' : '_'), $hms),
         ymdhm  => sprintf("%s%s%s", $ymd, ($date_sep ? ' ' : '_'), $hm),
     );
-    
+
     return %datetimes;
 }
 
 
 sub rm_duplicates {
     # """Remove duplicate items from an array."""
-    
+
     my $aref = shift;
     my $sub_name = join('::', (caller(0))[0, 3]);
     croak "The 1st arg of [$sub_name] must be an array ref!"
         unless ref $aref eq ARRAY;
-    
+
     my(%seen, @uniqued);
     @uniqued = grep !$seen{$_}++, @$aref;
     @$aref = @uniqued;
-    
+
     return;
 }
 #-------------------------------------------------------------------------------
@@ -310,14 +322,14 @@ sub rm_duplicates {
 
 sub parse_argv {
     # """@ARGV parser"""
-    
+
     my(
         $argv_aref,
         $cmd_opts_href,
         $run_opts_href,
     ) = @_;
     my %cmd_opts = %$cmd_opts_href; # For regexes
-    
+
     # Parser: Overwrite default run options if requested by the user.
     my $field_sep    = ',';
     my $subfield_sep = '-';
@@ -337,13 +349,24 @@ sub parse_argv {
                 @{$run_opts_href->{dirs}} = split /$field_sep/;
             }
         }
-        
+
         # Old-new string pairs
         if (/$cmd_opts{pairs}/i) {
             s/$cmd_opts{pairs}//i;
-            %{$run_opts_href->{pairs}} = split /$subfield_sep/;
+
+            my @_pairs = split /$field_sep/;
+            foreach my $pair (@_pairs) {
+                # The leading \b allows a single hyphen to be recognized
+                # as the pair delimiter.
+                my($old, $new) = split /\b$subfield_sep/, $pair;
+                $run_opts_href->{pairs}{$old} = $new if $new;
+
+                # If the new string has not been given, delete the old string
+                # from the filenames.
+                $run_opts_href->{pairs}{$old} = '' if $old and not $new;
+            }
         }
-        
+
         # Whitespace replacement
         if (/$cmd_opts{space_to}/i) {
             s/$cmd_opts{space_to}//i;
@@ -358,61 +381,61 @@ sub parse_argv {
             }
             $run_opts_href->{space_to} = $_;
         }
-        
+
         # Predefined routine toggles
         if (/$cmd_opts{turn_off}/i) {
             s/$cmd_opts{turn_off}//i;
             @{$run_opts_href->{turn_off}} = split /$field_sep/;
         }
-        
+
         # The front matter won't be displayed at the beginning of the program.
         if (/$cmd_opts{nofm}/) {
             $run_opts_href->{is_nofm} = 1;
         }
-        
+
         # The shell won't be paused at the end of the program.
         if (/$cmd_opts{nopause}/) {
             $run_opts_href->{is_nopause} = 1;
         }
     }
     rm_duplicates($run_opts_href->{dirs});
-    
+
     return;
 }
 
 
 sub replace_whitespace {
     # """Replace whitespace with the hyphen or underscore."""
-    
+
     my(
         $old,
         $olds_news_href,
         $space_to,
     ) = @_;
-    
+
     # True: If the old filename had been renamed at least once,
     #       work continuously on that renamed filename.
     # False: If not, work on the not-yet-renamed old filename.
     my $new = exists $olds_news_href->{$old} ? $olds_news_href->{$old} : $old;
-    
+
     $new =~ s/\s+/$space_to/g;
-    
+
     return $olds_news_href->{$old} = $new;
 }
 
 
 sub remove_symbols {
     # """Remove symbols and duplicate periods (.) from filenames."""
-    
+
     my(
         $old,
         $olds_news_href,
     ) = @_;
     my $new = exists $olds_news_href->{$old} ? $olds_news_href->{$old} : $old;
-    
+
     # Remove characters other than [a-zA-Z0-9_\-.\f\t\n\r ].
     $new =~ s/[^\w\-.\s]+//ga;
-    
+
     # Remove duplicate periods (.); but skip link files of Windows.
     if ($new =~ /[.]+.*[.]+/ and not $new =~ /lnk$/i) {
         (my $_bname = $new) =~ s/(.*)([.]\w+)$/$1/;
@@ -420,70 +443,70 @@ sub remove_symbols {
         $_bname =~ s/[.]+//g;
         $new    = $_bname.$_ext;
     }
-    
+
     return $olds_news_href->{$old} = $new;
 }
 
 
 sub yy_to_yyyy {
     # """Rename two-digit years to four-digit years."""
-    
+
     my(
         $old,
         $olds_news_href,
     ) = @_;
     my $new = exists $olds_news_href->{$old} ? $olds_news_href->{$old} : $old;
-    
+
     $new =~ s/
         (?<lead_delim>[\-_]?)
         (?<yymmdd>1[0-9]{5})
         (?<rear_delim>[\-_]?)
     /$+{lead_delim}20$+{yymmdd}$+{rear_delim}/x;
-    
+
     return $olds_news_href->{$old} = $new;
 }
 
 
 sub uncap_ext {
     # """Lowercase file extensions."""
-    
+
     my(
         $old,
         $olds_news_href,
     ) = @_;
     my $new = exists $olds_news_href->{$old} ? $olds_news_href->{$old} : $old;
-    
+
     $new =~ s/[.]\K(?<ext>\w+)$/\L$+{ext}/;
-    
+
     return $olds_news_href->{$old} = $new;
 }
 
 
 sub uncap_allcapped_substr {
     # """Lowercase all-uppercased filename substrings."""
-    
+
     my(
         $old,
         $olds_news_href,
     ) = @_;
     my $new = exists $olds_news_href->{$old} ? $olds_news_href->{$old} : $old;
-    
+
     $new =~ s/([A-Z]+)/\L$1/g;
-    
+
     return $olds_news_href->{$old} = $new;
 }
 
 
 sub unix_case {
     # """Apply unix-like case."""
-    
+
     my(
         $old,
         $olds_news_href,
         $space_to,
     ) = @_;
     my $new = exists $olds_news_href->{$old} ? $olds_news_href->{$old} : $old;
-    
+
     # CamelCap --> Unix-like case
     # Author name
     $new =~ s/
@@ -491,7 +514,7 @@ sub unix_case {
         (?<given_name>[A-Z]{1,2})
         (?<delim>[\-_])
     /\L$+{fam_name}$space_to/x;
-    
+
     # All-capped followed by CamelCap
     $new =~
         s/
@@ -499,72 +522,72 @@ sub unix_case {
             (?<all_capped_last>[A-Z]{1})
             (?<lead_camel>[a-z]+)
         /\L$+{all_capped}$space_to$+{all_capped_last}$+{lead_camel}/gx;
-    
+
     # Leading capped
     $new =~ s/^(?<lead>[A-Z]+)/\L$+{lead}/;
-    
+
     # CamelCapped (an upper case followed by a lower case)
     $new =~ s/[a-z]+\K(?<bound>[A-Z]+)/$space_to\L$+{bound}/g;
     $new =~ s/(?<bound>[\-_][A-Z]+)/\L$+{bound}/g;
     $new =~ s/_+/_/;
-    
+
     # An uppercase letter followed by a number
     $new =~ s/[0-9]+\K(?<bound>[A-Z]+)/$space_to\L$+{bound}/g;
-    
+
     return $olds_news_href->{$old} = $new;
 }
 
 
 sub custom_strings {
     # """Rename filenames using custom string pairs."""
-    
+
     my(
         $old,
         $olds_news_href,
         $user_pairs_href,
     ) = @_;
     my $new = exists $olds_news_href->{$old} ? $olds_news_href->{$old} : $old;
-    
+
     # Overriding by user-specified string pairs
     while (my($k, $v) = each %$user_pairs_href) { $new =~ s/$k/$v/g }
-    
+
     # Inconsistent cases
     $new =~ s/^JJ/jang/; # Case-sensitive, as I use jj
     $new =~ s/^JangJ/jang/;
     $new =~ s/PhD/phd/;
     $new =~ s/WiFi/wifi/;
-    
+
     # Enumeration
     $new =~ s/^([0-9])-([0-9])/0$1-0$2/; # zero-padding
     $new =~ s/^([0-9]){1}[\-_]/0$1/;     # zero-padding
-    
+
     # Languages
     $new =~ s/(?<delim>[\-_])?(?<lang>kor)/$+{delim}kr/i;
     $new =~ s/(?<delim>[\-_])?(?<lang>jpn)/$+{delim}jp/i;
-    
+
     # Programs
     $new =~ s/LaTeX/latex/;
     $new =~ s/TeX/tex/;
     $new =~ s/(?<mc>(?:MCNP(X|[0-9])?|PHITS))/\L$+{mc}/;
-    
+
     # Linac
     $new =~ s/linear_accel/linac/i;
     $new =~ s/(e|elec)[\-_](linac|gun)/e$2/i;
     $new =~ s/(x|s)-band/$1band/i;
     $new =~ s/(\bxlin\b)|(xband_linac)|(x_linac)/xlinac/i;
     $new =~ s/(\bslin\b)|(sband_linac)|(s_linac)/slinac/i;
-    
+
     return $olds_news_href->{$old} = $new;
 }
 
 
 sub olds_news_preproc {
     # """Preprocess the pairs of old and new filenames."""
-    
+
     my $olds_news_href = shift;
     my $olds_dupl_href = {};
     my $to_be_renamed_count = 0;
-    
+
     # Create a conversion.
     my $lengthiest = '';
     foreach my $dir (keys %$olds_news_href) {
@@ -577,19 +600,19 @@ sub olds_news_preproc {
         }
     }
     my $conv = '%-'.length($lengthiest).'s';
-    
+
     # Preprocessing
     foreach my $dir (sort keys %$olds_news_href) {
         # Directory-specific storages
         my %olds_news = %{$olds_news_href->{$dir}};
         $olds_dupl_href->{$dir} = [];
-        
+
         # Find duplicate new filenames.
         my @vals     = values %olds_news;
         my(%seen_tmp, %seen);
         my @dupl_tmp = grep $seen_tmp{$_}++, @vals;
         my @dupl     = grep !$seen{$_}++,    @dupl_tmp;
-        
+
         # Skip duplicate new filenames.
         foreach my $k (keys %olds_news) {
             foreach (@dupl) {
@@ -600,7 +623,7 @@ sub olds_news_preproc {
                 }
             }
         }
-        
+
         # Display the old and new filenames.
         while (my($old, $new) = each %olds_news) {
             if ($old ne $new) {
@@ -609,51 +632,51 @@ sub olds_news_preproc {
             }
         }
     }
-    
+
     return($olds_dupl_href, $to_be_renamed_count);
 }
 
 
 sub flush {
     # """Run renaming."""
-    
+
     my(
         $olds_news_href,
         $to_be_renamed_count,
     ) = @_;
-    
+
     my $cwd = getcwd();
     foreach my $dir (sort keys %$olds_news_href) {
         # Directory-specific storages
         my %olds_news = %{$olds_news_href->{$dir}};
-        
+
         chdir $dir;
         while (my($old, $new) = each %olds_news) {
             rename($old, $new) if $old ne $new;
         }
         chdir $cwd;
     }
-    
+
     # Reporting
     printf(
         "%s file%s been renamed.\n",
         $to_be_renamed_count,
         $to_be_renamed_count > 1 ? 's have' : ' has',
     );
-    
+
     return;
 }
 
 
 sub run_fname_modifiers {
     # """Run filename modifiers."""
-    
+
     my(
         $prog_info_href,
         $run_opts_href,
     ) = @_;
-    my %_prog_info = %$prog_info_href; # For regexes
-    
+    my %prog_info = %$prog_info_href; # For regexes
+
     # Rules predefined by the author of fnamer
     my %rules = (
         custom_strings => {
@@ -701,7 +724,7 @@ sub run_fname_modifiers {
     foreach (@{$run_opts_href->{turn_off}}) {
         $rules{$_}{toggle} = 0 if exists $rules{$_};
     }
-    
+
     # Buffer pairs of old and new filenames.
     my %olds_news;
     my $cwd = getcwd();
@@ -712,20 +735,21 @@ sub run_fname_modifiers {
         chdir $dir if -e $dir;
         foreach my $old (glob ".* *") {
             # Skip the following:
-            next if $old =~ /$_prog_info{titl}/; # This source code
+            next if $old =~ /$prog_info{titl}/;  # This source code
             next if $old =~ /_?HDR|_?DSC|IMG_?/; # Photo files
             next if $old =~ /[.]run[.]/;         # LaTeX aux files
-            
-            # Performed ahead of other rules
+
+            # custom_strings(): Performed ahead of other predefined rules
             custom_strings(
                 $old,
                 $olds_news{$dir},
                 $rules{custom_strings}{add_args},
             ) if $rules{custom_strings}{toggle};
-            
+
+            # The predefined rules other than custom_strings()
             foreach my $rule (sort keys %rules) {
                 next if not $rules{$rule}{toggle};
-                
+
                 if (grep { $old =~ $_ } @{$rules{$rule}{regexes}}) {
                     $rules{$rule}{cref}->(
                         $old,
@@ -737,13 +761,13 @@ sub run_fname_modifiers {
         }
         chdir $cwd;
     }
-    
+
     # Preprocess the pairs of old and new filenames.
     my (
         $olds_dupl_href,
         $to_be_renamed_count,
     ) = olds_news_preproc(\%olds_news);
-    
+
     # If the buffered hashes contain defined key-val pairs,
     # ask whether to perform the renaming.
     my $is_first = 1;
@@ -757,13 +781,13 @@ sub run_fname_modifiers {
             $is_first = 0;
         }
     }
-    
+
     if ($to_be_renamed_count == 0) {
         say '-' x 70;
         say "No filenames to be renamed.";
         say '-' x 70;
     }
-    
+
     elsif ($to_be_renamed_count != 0) {
         say '-' x 70;
         say "* Warning: The renaming will be irrevocable! *";
@@ -785,14 +809,14 @@ sub run_fname_modifiers {
             print $yn_message;
         }
     }
-    
+
     return;
 }
 
 
 sub fnamer {
     # """fnamer main routine"""
-    
+
     if (@ARGV) {
         my %prog_info = (
             titl       => basename($0, '.pl'),
@@ -803,9 +827,9 @@ sub fnamer {
             date_first => $FIRST,
             auth       => {
                 name => 'Jaewoong Jang',
-                posi => 'PhD student',
-                affi => 'University of Tokyo',
-                mail => 'jan9@korea.ac.kr',
+#                posi => '',
+#                affi => '',
+                mail => 'jangj@korea.ac.kr',
             },
         );
         my %cmd_opts = ( # Command-line opts
@@ -824,26 +848,26 @@ sub fnamer {
             is_nofm    => 0,
             is_nopause => 0,
         );
-        
-        # Notification - beginning
-        show_front_matter(\%prog_info, 'prog', 'auth')
-            unless $run_opts{is_nofm};
-        
+
         # ARGV validation and parsing
         validate_argv(\@ARGV, \%cmd_opts);
         parse_argv(\@ARGV, \%cmd_opts, \%run_opts);
-        
+
+        # Notification - beginning
+        show_front_matter(\%prog_info, 'prog', 'auth')
+            unless $run_opts{is_nofm};
+
         # Main
         run_fname_modifiers(\%prog_info, \%run_opts);
-        
+
         # Notification - end
         show_elapsed_real_time();
         pause_shell()
             unless $run_opts{is_nopause};
     }
-    
+
     system("perldoc \"$0\"") if not @ARGV;
-    
+
     return;
 }
 
@@ -882,8 +906,8 @@ fnamer - Rename multiple filenames according to your conventions
     -pairs=old-new ...
         Pairs of the old and new strings of filenames. Use this option
         for specifying your conventions on the fly.
-        For instance, the options -pairs=rpt-deck,figures-figs,Phase-phase
-        will rename rpt to deck, figures to figs, and Phase to phase.
+        For instance, the options -pairs=rpt-deck,Phase-phase,_test-
+        will rename rpt to deck and figures to figs, and remove _test.
         If given, these pairs will take precedence over the predefined rules.
 
     -space_to=-|_ (short form: -space, default: _)
@@ -910,6 +934,7 @@ fnamer - Rename multiple filenames according to your conventions
     perl fnamer.pl -dirs=.,../wow -pairs=fig-figs -nopause
     perl fnamer.pl -turn_off=yy_to_yyyy,custom_strings
     perl fnamer.pl -dirs=all -nopause
+    perl fnamer.pl -pairs=_new-
 
 =head1 REQUIREMENTS
 
@@ -923,7 +948,7 @@ Perl 5
     - Multiple runs of this program with the same on-the-fly string pairs can
       lead to duplicate renaming. For instance, if you have a file called
       'fig.eps' and run the program with the option -pairs=fig-figs
-      more than twice, the filename will eventually become 'figss.eps.'.
+      more than twice, the filename will eventually become 'figss.eps'.
 
 =head1 SEE ALSO
 
@@ -931,7 +956,7 @@ L<fnamer on GitHub|https://github.com/jangcom/fnamer>
 
 =head1 AUTHOR
 
-Jaewoong Jang <jan9@korea.ac.kr>
+Jaewoong Jang <jangj@korea.ac.kr>
 
 =head1 COPYRIGHT
 

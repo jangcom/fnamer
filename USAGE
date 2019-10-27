@@ -25,8 +25,8 @@ OPTIONS
         -pairs=old-new ...
             Pairs of the old and new strings of filenames. Use this option
             for specifying your conventions on the fly.
-            For instance, the options -pairs=rpt-deck,figures-figs,Phase-phase
-            will rename rpt to deck, figures to figs, and Phase to phase.
+            For instance, the options -pairs=rpt-deck,Phase-phase,_test-
+            will rename rpt to deck and figures to figs, and remove _test.
             If given, these pairs will take precedence over the predefined rules.
 
         -space_to=-|_ (short form: -space, default: _)
@@ -52,6 +52,7 @@ EXAMPLES
         perl fnamer.pl -dirs=.,../wow -pairs=fig-figs -nopause
         perl fnamer.pl -turn_off=yy_to_yyyy,custom_strings
         perl fnamer.pl -dirs=all -nopause
+        perl fnamer.pl -pairs=_new-
 
 REQUIREMENTS
     Perl 5
@@ -63,13 +64,13 @@ CAVEATS
         - Multiple runs of this program with the same on-the-fly string pairs can
           lead to duplicate renaming. For instance, if you have a file called
           'fig.eps' and run the program with the option -pairs=fig-figs
-          more than twice, the filename will eventually become 'figss.eps.'.
+          more than twice, the filename will eventually become 'figss.eps'.
 
 SEE ALSO
     fnamer on GitHub <https://github.com/jangcom/fnamer>
 
 AUTHOR
-    Jaewoong Jang <jan9@korea.ac.kr>
+    Jaewoong Jang <jangj@korea.ac.kr>
 
 COPYRIGHT
     Copyright (c) 2017-2019 Jaewoong Jang

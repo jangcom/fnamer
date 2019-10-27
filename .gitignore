@@ -1,0 +1,17 @@
+# github archive
+github/
+
+# fnamer records
+old/
+bak_fnamer.pl/
+fnamer_baker.bat
+updates.txt
+
+# MSWin link files
+*.lnk
+
+# POD-related
+fnamer_usage.bat
+fnamer.html
+pod2htmd.tmp
+fnamer_pod2html.bat

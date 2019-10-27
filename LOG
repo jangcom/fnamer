@@ -1,14 +1,20 @@
+v2.02
+- (2019-05-22) The -pairs option can now accept multiple old-new string pairs.
+- (2019-05-22) If a new string in the -pairs option is empty, the old string
+ will be removed. Use it to remove specific strings from the filenames.
+  e.g. -pairs=_test- will remove _test from the filenames.
+
 v2.01 (2019-04-19)
-> Source code renamed: fnaming --> fnamer
-> Source code reorganized.
-> More than one directory of interest (whose filenames and subdirs will
+- Source code renamed: fnaming --> fnamer
+- Source code reorganized.
+- More than one directory of interest (whose filenames and subdirs will
   be renamed) can be designated.
-> User-defined old-new strings can be specified via the cmd-line opt.
-> The predefined rules (routines) can be turned off via the cmd-line opt.
+- User-defined old-new strings can be specified via the cmd-line opt.
+- The predefined rules (routines) can be turned off via the cmd-line opt.
 
 v2.00 (2018-08-16)
-> Source code renamed: fnc --> fnaming
-> Source code reorganized.
+- Source code renamed: fnc --> fnaming
+- Source code reorganized.
 
 v1.00 (2017-05-15)
-> Source code created: fnc
+- Source code created: fnc
